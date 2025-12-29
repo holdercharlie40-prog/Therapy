@@ -1,0 +1,8 @@
+{
+  "name": "Lumina: Deep Emotional Healing",
+  "description": "A world-class AI therapist app integrating CBT, DBT, EMDR, and Trauma-informed care using advanced Gemini models for deep emotional resonance.",
+  "requestFramePermissions": [
+    "microphone",
+    "geolocation"
+  ]
+}
