@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Wand2, Target, Shield, Brain, Zap, Eye, Heart, Check, Sparkles, Info, History, Leaf, Users, Home, Users2, BookOpen } from 'lucide-react';
+import { Wand2, Target, Shield, Brain, Zap, Eye, Heart, Check, Sparkles, Info, History, Leaf, Users, Home, Users2, BookOpen, Activity } from 'lucide-react';
 import { GeminiService } from '../services/geminiService';
 import { TherapyPlan, TherapyMode, THERAPY_DEFINITIONS } from '../types';
 
@@ -43,6 +43,7 @@ const TherapyPath: React.FC = () => {
       case 'IPT': return <Users className="w-5 h-5 text-cyan-400" />;
       case 'Family': return <Home className="w-5 h-5 text-rose-400" />;
       case 'Group': return <Users2 className="w-5 h-5 text-teal-400" />;
+      case 'ABA': return <Activity className="w-5 h-5 text-amber-400" />;
       default: return <Heart className="w-5 h-5 text-green-400" />;
     }
   };
@@ -57,6 +58,7 @@ const TherapyPath: React.FC = () => {
     { id: 'IPT', label: 'Interpersonal', icon: <Users className="w-4 h-4" /> },
     { id: 'Family', label: 'Family Therapy', icon: <Home className="w-4 h-4" /> },
     { id: 'Group', label: 'Group Therapy', icon: <Users2 className="w-4 h-4" /> },
+    { id: 'ABA', label: 'ABA Therapy', icon: <Activity className="w-4 h-4" /> },
   ];
 
   return (

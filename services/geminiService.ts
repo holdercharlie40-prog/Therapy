@@ -11,7 +11,7 @@ export class GeminiService {
       model: "gemini-3-pro-preview",
       contents: `Context: ${context}\n\nUser: ${message}`,
       config: {
-        systemInstruction: `${personality.instruction} Additionally, utilize your deep thinking capabilities to analyze underlying patterns before responding. Stay in character at all times.`,
+        systemInstruction: `${personality.instruction} Utilize your thinking budget to analyze deep subconscious themes before responding. Always maintain your unique character persona.`,
         thinkingConfig: { thinkingBudget: 32768 }
       },
     });
@@ -20,11 +20,11 @@ export class GeminiService {
 
   static async generateTherapyPath(userGoals: string, modalities: TherapyMode[]) {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    const modalityList = modalities.length > 0 ? modalities.join(', ') : "CBT, DBT, Trauma-Informed, EMDR, Psychodynamic, Humanistic, IPT, Family, Group";
+    const modalityList = modalities.length > 0 ? modalities.join(', ') : "CBT, DBT, Trauma-Informed, EMDR, Psychodynamic, Humanistic, IPT, Family, Group, ABA";
     
     const response = await ai.models.generateContent({
       model: "gemini-3-pro-preview",
-      contents: `User Goals: ${userGoals}\nRequested Modalities: ${modalityList}\n\nPlease generate a personalized therapy plan. For EACH STEP, you MUST provide a specific, actionable "Homework Assignment" in the exercise field. This homework should be a concrete task the user can perform in their daily life.`,
+      contents: `User Goals: ${userGoals}\nRequested Modalities: ${modalityList}\n\nPlease generate a personalized therapy plan. For EACH STEP, provide a specific, actionable "Homework Assignment".`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -38,10 +38,10 @@ export class GeminiService {
               items: {
                 type: Type.OBJECT,
                 properties: {
-                  modality: { type: Type.STRING, description: "One of the requested modalities: CBT, DBT, Trauma, EMDR, Psychodynamic, Humanistic, IPT, Family, or Group" },
+                  modality: { type: Type.STRING },
                   title: { type: Type.STRING },
                   description: { type: Type.STRING },
-                  exercise: { type: Type.STRING, description: "A detailed homework assignment for the user to complete." }
+                  exercise: { type: Type.STRING }
                 },
                 required: ["modality", "title", "description", "exercise"]
               }
@@ -49,104 +49,38 @@ export class GeminiService {
           },
           required: ["name", "focus", "steps", "philosophy"]
         },
-        systemInstruction: "You are a master clinical architect. Create a multi-modal therapy path tailored to the user's specific challenges using the requested therapeutic techniques. Every exercise MUST be an actionable homework assignment."
+        systemInstruction: "You are a master clinical architect. Build a personalized multi-modal healing journey. Ensure behavioral techniques are included if ABA is requested."
       }
     });
     return JSON.parse(response.text);
   }
 
-  static async generateMeditationScript(focus: string, personalityId: PersonalityId = 'therapist') {
+  // Fix: Added missing method to generate meditation scripts requested by MeditationHub
+  static async generateMeditationScript(focus: string, personalityId: PersonalityId) {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const personality = PERSONALITIES[personalityId];
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: `Create a 5-minute guided meditation script focusing on: ${focus}`,
+      model: "gemini-3-pro-preview",
+      contents: `Focus: ${focus}\n\nPlease write a 5-minute guided meditation script. Use [pause] to indicate short pauses for reflection.`,
       config: {
-        systemInstruction: `${personality.instruction} Write a soothing, present-moment meditation script in your specific voice. Include periodic pauses marked as [pause]. Keep the tone ethereal and grounding.`
-      }
-    });
-    return response.text;
-  }
-
-  static async generateAffirmations(personalityId: PersonalityId = 'therapist') {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    const personality = PERSONALITIES[personalityId];
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: `Generate 5 powerful, short, and uplifting personal affirmations.`,
-      config: {
-        systemInstruction: `${personality.instruction} You are providing short affirmations to the user. Make them deeply personal, encouraging, and brief. Use your specific voice and tone. Separate each with a newline and include [pause] between them for audio pacing.`
-      }
-    });
-    return response.text;
-  }
-
-  static async quickComfort(message: string, personalityId: PersonalityId = 'therapist') {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    const personality = PERSONALITIES[personalityId];
-    
-    const response = await ai.models.generateContent({
-      model: "gemini-flash-lite-latest",
-      contents: message,
-      config: {
-        systemInstruction: `${personality.instruction} Provide a very brief (1-2 sentence) grounding exercise or comfort phrase in your specific voice.`,
-      }
-    });
-    return response.text;
-  }
-
-  static async searchClinicalInfo(query: string) {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: `Find clinical evidence or detailed explanations for: ${query}`,
-      config: {
-        tools: [{ googleSearch: {} }],
+        systemInstruction: `${personality.instruction} You are guiding a meditation session. Speak with clinical grace and deep empathy.`,
       },
     });
-    
-    const text = response.text;
-    const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks?.map(chunk => ({
-      title: chunk.web?.title || 'Resource',
-      uri: chunk.web?.uri || '#'
-    })).filter(s => s.uri !== '#') || [];
-
-    return { text, sources };
+    return response.text;
   }
 
-  static async findLocalSupport(lat: number, lng: number) {
+  // Fix: Added missing method to generate daily affirmations requested by MeditationHub
+  static async generateAffirmations(personalityId: PersonalityId) {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const personality = PERSONALITIES[personalityId];
     const response = await ai.models.generateContent({
-      model: "gemini-flash-latest",
-      contents: "Find high-quality trauma-informed therapy centers or support groups near me.",
+      model: "gemini-3-pro-preview",
+      contents: "Generate 5 daily affirmations that resonate with your unique persona and clinical approach.",
       config: {
-        tools: [{ googleMaps: {} }],
-        toolConfig: {
-          retrievalConfig: {
-            latLng: { latitude: lat, longitude: lng }
-          }
-        }
+        systemInstruction: `${personality.instruction} You are providing soul-deep affirmations. Maintain your unique persona.`,
       },
     });
-    return {
-      text: response.text,
-      links: response.candidates?.[0]?.groundingMetadata?.groundingChunks || []
-    };
-  }
-
-  static getVoiceForPersonality(personalityId: PersonalityId): string {
-    const map: Record<PersonalityId, string> = {
-      therapist: 'Kore',
-      parent: 'Puck',
-      mentor: 'Zephyr',
-      artist: 'Kore',
-      family: 'Puck',
-      friend: 'Zephyr',
-      elder: 'Charon',
-      educator: 'Kore',
-      geek: 'Fenrir'
-    };
-    return map[personalityId] || 'Kore';
+    return response.text;
   }
 
   static async speak(text: string, voiceName: string = 'Kore') {
@@ -165,8 +99,65 @@ export class GeminiService {
     });
     return response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
   }
+
+  static getVoiceForPersonality(personalityId: PersonalityId): string {
+    const map: Record<PersonalityId, string> = {
+      therapist: 'Kore',
+      parent: 'Puck',
+      mentor: 'Zephyr',
+      artist: 'Kore',
+      family: 'Puck',
+      friend: 'Zephyr',
+      elder: 'Charon',
+      educator: 'Kore',
+      geek: 'Fenrir'
+    };
+    return map[personalityId] || 'Kore';
+  }
+
+  static async quickComfort(message: string, personalityId: PersonalityId = 'therapist') {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const personality = PERSONALITIES[personalityId];
+    const response = await ai.models.generateContent({
+      model: "gemini-flash-lite-latest",
+      contents: message,
+      config: {
+        systemInstruction: `${personality.instruction} Provide a very brief (1-2 sentence) comfort or grounding phrase.`,
+      }
+    });
+    return response.text;
+  }
+
+  static async searchClinicalInfo(query: string) {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: query,
+      config: { tools: [{ googleSearch: {} }] },
+    });
+    const text = response.text;
+    const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks?.map(chunk => ({
+      title: chunk.web?.title || 'Clinical Source',
+      uri: chunk.web?.uri || '#'
+    })).filter(s => s.uri !== '#') || [];
+    return { text, sources };
+  }
+
+  static async findLocalSupport(lat: number, lng: number) {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const response = await ai.models.generateContent({
+      model: "gemini-flash-latest",
+      contents: "Find mental health support centers near me.",
+      config: {
+        tools: [{ googleMaps: {} }],
+        toolConfig: { retrievalConfig: { latLng: { latitude: lat, longitude: lng } } }
+      },
+    });
+    return { text: response.text, links: response.candidates?.[0]?.groundingMetadata?.groundingChunks || [] };
+  }
 }
 
+// Manual Encoding/Decoding following strict rules
 export function encodePCM(bytes: Uint8Array): string {
   let binary = '';
   const len = bytes.byteLength;
@@ -180,7 +171,7 @@ export function decodeBase64(base64: string): Uint8Array {
   const binaryString = atob(base64);
   const len = binaryString.length;
   const bytes = new Uint8Array(len);
-  for (let i = 0; i < binaryString.length; i++) {
+  for (let i = 0; i < len; i++) {
     bytes[i] = binaryString.charCodeAt(i);
   }
   return bytes;
@@ -192,7 +183,6 @@ export async function decodeAudioBuffer(
   sampleRate: number = 24000,
   numChannels: number = 1
 ): Promise<AudioBuffer> {
-  // Use byteOffset and byteLength to ensure alignment for Int16Array (2 bytes per element)
   const dataInt16 = new Int16Array(data.buffer, data.byteOffset, data.byteLength / 2);
   const frameCount = dataInt16.length / numChannels;
   const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);

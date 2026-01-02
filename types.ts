@@ -1,5 +1,5 @@
 
-export type TherapyMode = 'CBT' | 'DBT' | 'Trauma' | 'EMDR' | 'Psychodynamic' | 'Humanistic' | 'IPT' | 'Family' | 'Group' | 'General';
+export type TherapyMode = 'CBT' | 'DBT' | 'Trauma' | 'EMDR' | 'Psychodynamic' | 'Humanistic' | 'IPT' | 'Family' | 'Group' | 'ABA' | 'General';
 
 export type PersonalityId = 'therapist' | 'family' | 'friend' | 'elder' | 'educator' | 'geek' | 'parent' | 'mentor' | 'artist';
 
@@ -98,6 +98,11 @@ export const THERAPY_DEFINITIONS: Record<TherapyMode, { title: string; definitio
     title: 'Group Therapy',
     definition: 'A shared therapeutic experience where individuals work together under therapist guidance to build social skills and find universality in their struggles.',
     keyPrinciples: ['Universality', 'Altruism', 'Corrective Recapitulation', 'Group Cohesiveness']
+  },
+  ABA: {
+    title: 'Applied Behavior Analysis (ABA)',
+    definition: 'A scientific approach to understanding behavior, focusing on how behaviors change or are affected by the environment, as well as how learning takes place.',
+    keyPrinciples: ['Positive Reinforcement', 'Antecedent-Behavior-Consequence', 'Behavioral Observation', 'Data-Driven Progress']
   },
   General: {
     title: 'Integrative Support',

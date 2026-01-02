@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BookOpen, Shield, Brain, Zap, Eye, History, Leaf, Users, Home, Users2, Info } from 'lucide-react';
+import { BookOpen, Shield, Brain, Zap, Eye, History, Leaf, Users, Home, Users2, Info, Activity } from 'lucide-react';
 import { THERAPY_DEFINITIONS, TherapyMode } from '../types';
 
 const TherapyLibrary: React.FC = () => {
@@ -15,6 +15,7 @@ const TherapyLibrary: React.FC = () => {
       case 'IPT': return <Users className="w-8 h-8 text-cyan-400" />;
       case 'Family': return <Home className="w-8 h-8 text-rose-400" />;
       case 'Group': return <Users2 className="w-8 h-8 text-teal-400" />;
+      case 'ABA': return <Activity className="w-8 h-8 text-amber-400" />;
       default: return <Info className="w-8 h-8 text-green-400" />;
     }
   };

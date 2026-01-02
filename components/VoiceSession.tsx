@@ -28,8 +28,8 @@ const VoiceSession: React.FC<VoiceSessionProps> = ({ personalityId }) => {
   const currentModelText = useRef('');
   
   const audioContextRef = useRef<AudioContext | null>(null);
-  const sessionRef = useRef<any>(null);
   const inputAudioContextRef = useRef<AudioContext | null>(null);
+  const sessionRef = useRef<any>(null);
   const nextStartTimeRef = useRef<number>(0);
   const sourcesRef = useRef<Set<AudioBufferSourceNode>>(new Set());
   const transcriptEndRef = useRef<HTMLDivElement>(null);
@@ -46,9 +46,7 @@ const VoiceSession: React.FC<VoiceSessionProps> = ({ personalityId }) => {
   }, [transcripts, status]);
 
   useEffect(() => {
-    return () => {
-      stopSession();
-    };
+    return () => stopSession();
   }, []);
 
   const startVisualizer = () => {
@@ -98,11 +96,12 @@ const VoiceSession: React.FC<VoiceSessionProps> = ({ personalityId }) => {
       inputAudioContextRef.current.close().catch(() => {});
       inputAudioContextRef.current = null;
     }
+    nextStartTimeRef.current = 0;
   };
 
   const startSession = async () => {
     try {
-      stopSession(); // Clean up existing
+      stopSession(); 
       setStatus('connecting');
       setIsActive(true);
       
@@ -131,7 +130,6 @@ const VoiceSession: React.FC<VoiceSessionProps> = ({ personalityId }) => {
         callbacks: {
           onopen: () => {
             setStatus('listening');
-            
             const source = inputAudioContextRef.current!.createMediaStreamSource(stream);
             const scriptProcessor = inputAudioContextRef.current!.createScriptProcessor(4096, 1, 1);
             
@@ -195,9 +193,7 @@ const VoiceSession: React.FC<VoiceSessionProps> = ({ personalityId }) => {
             }
 
             if (message.serverContent?.interrupted) {
-              sourcesRef.current.forEach(s => {
-                try { s.stop(); } catch (e) {}
-              });
+              sourcesRef.current.forEach(s => { try { s.stop(); } catch (e) {} });
               sourcesRef.current.clear();
               nextStartTimeRef.current = 0;
               updateTranscript('assistant', currentModelText.current + " [Interrupted]", false);
@@ -218,7 +214,7 @@ const VoiceSession: React.FC<VoiceSessionProps> = ({ personalityId }) => {
           },
           inputAudioTranscription: {},
           outputAudioTranscription: {},
-          systemInstruction: `${activePers.instruction} This is a live voice session. Be warm, natural, and responsive. Use active listening cues. Focus on deep emotional resonance.`,
+          systemInstruction: `${activePers.instruction} This is a live voice session. Be warm, natural, and responsive. Speak with clinical grace and empathy.`,
         }
       });
 
@@ -242,69 +238,73 @@ const VoiceSession: React.FC<VoiceSessionProps> = ({ personalityId }) => {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full min-h-[500px]">
-      <div className="glass-panel p-8 rounded-[2.5rem] flex flex-col items-center justify-between relative overflow-hidden border-indigo-500/10 shadow-2xl bg-zinc-950/20 group">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 h-full min-h-[600px]">
+      {/* Visual Experience */}
+      <div className="glass-panel p-10 rounded-[3rem] flex flex-col items-center justify-between relative overflow-hidden border-indigo-500/10 shadow-2xl bg-zinc-950/20 group">
         <div className={`absolute inset-0 bg-gradient-to-b from-indigo-500/10 via-transparent to-transparent transition-opacity duration-1000 ${isActive ? 'opacity-100' : 'opacity-0'}`} />
         
         {isActive && (
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-indigo-500/10 rounded-full blur-[100px] animate-pulse" />
-            <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-purple-500/10 rounded-full blur-[100px] animate-pulse delay-700" />
+            <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-indigo-500/10 rounded-full blur-[120px] animate-pulse" />
+            <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-500/10 rounded-full blur-[120px] animate-pulse delay-1000" />
           </div>
         )}
 
-        <div className="relative z-10 flex flex-col items-center gap-6 mt-8">
+        <div className="relative z-10 flex flex-col items-center gap-8 mt-12">
           <div className="relative">
-            <div className={`absolute inset-0 rounded-full blur-2xl transition-all duration-1000 ${isActive ? 'bg-indigo-500/30 scale-125 animate-pulse' : 'bg-transparent'}`} />
-            <div className={`w-36 h-36 rounded-full border-2 flex items-center justify-center transition-all duration-700 relative z-10 ${isActive ? `border-indigo-400 scale-110 shadow-[0_0_60px_rgba(129,140,248,0.4)]` : 'border-white/5 bg-zinc-900'}`}>
-              <UserCheck className={`w-16 h-16 ${isActive ? activePers.color : 'text-zinc-600'}`} />
+            <div className={`absolute inset-0 rounded-full blur-3xl transition-all duration-1000 ${isActive ? 'bg-indigo-500/40 scale-125 animate-pulse' : 'bg-transparent'}`} />
+            <div className={`w-44 h-44 rounded-full border-2 flex items-center justify-center transition-all duration-700 relative z-10 ${isActive ? `border-indigo-400 scale-110 shadow-[0_0_80px_rgba(129,140,248,0.5)]` : 'border-white/5 bg-zinc-900'}`}>
+              <UserCheck className={`w-20 h-20 ${isActive ? activePers.color : 'text-zinc-600'}`} />
               {isActive && (
                 <>
-                  <div className={`absolute inset-0 rounded-full border border-indigo-500/50 animate-ping opacity-20`} style={{ animationDuration: '3s' }} />
-                  <div className={`absolute -inset-4 rounded-full border border-indigo-400/30 animate-ping opacity-10`} style={{ animationDuration: '4s', animationDelay: '1s' }} />
+                  <div className={`absolute inset-0 rounded-full border border-indigo-500/50 animate-ping opacity-30`} style={{ animationDuration: '4s' }} />
+                  <div className={`absolute -inset-6 rounded-full border border-indigo-400/20 animate-ping opacity-10`} style={{ animationDuration: '6s', animationDelay: '1.5s' }} />
                 </>
               )}
             </div>
           </div>
-          <div className="text-center space-y-2">
-            <h3 className="text-3xl font-serif text-white tracking-tight">{activePers.name}</h3>
-            <p className="text-zinc-400 font-bold uppercase tracking-[0.3em] text-[9px]">{activePers.role}</p>
+          <div className="text-center space-y-3">
+            <h3 className="text-4xl font-serif text-white tracking-tight">{activePers.name}</h3>
+            <p className="text-zinc-400 font-black uppercase tracking-[0.5em] text-[10px]">{activePers.role}</p>
           </div>
         </div>
 
-        <div className="relative z-10 w-full flex flex-col items-center gap-4 py-8">
+        {/* Improved Visualizers */}
+        <div className="relative z-10 w-full flex flex-col items-center gap-6 py-10">
           {isActive ? (
-            <div className="w-full flex flex-col gap-8 px-12">
-              <div className="space-y-2">
+            <div className="w-full flex flex-col gap-10 px-16">
+              <div className="space-y-3">
                 <div className="flex items-center justify-between px-2">
-                   <span className="text-[8px] font-black text-indigo-400 uppercase tracking-widest">{activePers.name}</span>
+                   <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">{activePers.name}'s Presence</span>
+                   <span className={`text-[9px] font-black uppercase tracking-widest ${status === 'speaking' ? 'text-indigo-500' : 'text-zinc-700'}`}>Active Response</span>
                 </div>
-                <div className="flex gap-1 items-end h-12 w-full justify-center">
-                  {[...Array(32)].map((_, i) => {
-                    const level = outputVolume * (0.8 + Math.random() * 0.4);
-                    const height = status === 'speaking' ? Math.max(4, level * 1.5) : 4;
+                <div className="flex gap-1.5 items-end h-16 w-full justify-center">
+                  {[...Array(40)].map((_, i) => {
+                    const level = outputVolume * (0.9 + Math.random() * 0.2);
+                    const height = status === 'speaking' ? Math.max(6, level * 2) : 6;
                     return (
                       <div
                         key={`out-${i}`}
-                        className={`w-1 rounded-full transition-all duration-75 ${activePers.color} bg-current opacity-80 shadow-[0_0_8px_rgba(129,140,248,0.5)]`}
+                        className={`w-1 rounded-full transition-all duration-75 ${activePers.color} bg-current opacity-80 shadow-[0_0_12px_rgba(129,140,248,0.4)]`}
                         style={{ height: `${height}px` }}
                       />
                     );
                   })}
                 </div>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <div className="flex items-center justify-between px-2">
-                   <span className="text-[8px] font-black text-rose-400 uppercase tracking-widest">You</span>
+                   <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest">Your Spirit</span>
+                   <span className={`text-[9px] font-black uppercase tracking-widest ${status === 'listening' ? 'text-rose-500' : 'text-zinc-700'}`}>Synchronizing</span>
                 </div>
-                <div className="flex gap-1 items-end h-12 w-full justify-center">
-                  {[...Array(32)].map((_, i) => {
-                    const level = inputVolume * (0.8 + Math.random() * 0.4);
-                    const height = !isMuted && status === 'listening' ? Math.max(4, level * 1.5) : 4;
+                <div className="flex gap-1.5 items-end h-16 w-full justify-center">
+                  {[...Array(40)].map((_, i) => {
+                    const level = inputVolume * (0.9 + Math.random() * 0.2);
+                    const height = !isMuted && status === 'listening' ? Math.max(6, level * 2) : 6;
                     return (
                       <div
                         key={`in-${i}`}
-                        className={`w-1 rounded-full transition-all duration-75 bg-rose-400 opacity-80 shadow-[0_0_8px_rgba(251,113,133,0.5)]`}
+                        className={`w-1 rounded-full transition-all duration-75 bg-rose-400 opacity-80 shadow-[0_0_12px_rgba(251,113,133,0.4)]`}
                         style={{ height: `${height}px` }}
                       />
                     );
@@ -313,78 +313,99 @@ const VoiceSession: React.FC<VoiceSessionProps> = ({ personalityId }) => {
               </div>
             </div>
           ) : (
-             <div className="h-40 flex items-center justify-center text-zinc-700 opacity-20">
-                <Activity className="w-16 h-16" />
+             <div className="h-48 flex items-center justify-center text-zinc-700 opacity-10">
+                <Activity className="w-24 h-24" />
              </div>
           )}
         </div>
 
-        <div className="relative z-10 w-full flex flex-col items-center gap-8 pb-8">
-          <div className="flex items-center gap-8">
+        <div className="relative z-10 w-full flex flex-col items-center gap-10 pb-12">
+          <div className="flex items-center gap-10">
             {isActive ? (
               <>
                 <button
                   onClick={() => setIsMuted(!isMuted)}
-                  className={`p-6 rounded-[1.5rem] transition-all border ${isMuted ? 'bg-rose-500/20 border-rose-500/50 text-rose-400' : 'bg-zinc-800 border-white/10 text-zinc-400 hover:text-white'}`}
+                  className={`p-7 rounded-[2rem] transition-all border ${isMuted ? 'bg-rose-500/20 border-rose-500/50 text-rose-400' : 'bg-zinc-800 border-white/10 text-zinc-400 hover:text-white hover:scale-110 active:scale-95'}`}
                 >
-                  {isMuted ? <MicOff className="w-7 h-7" /> : <Mic className="w-7 h-7" />}
+                  {isMuted ? <MicOff className="w-8 h-8" /> : <Mic className="w-8 h-8" />}
                 </button>
                 <button
                   onClick={stopSession}
-                  className="bg-rose-600 text-white p-8 rounded-[2.5rem] hover:bg-rose-500 shadow-2xl transition-all"
+                  className="bg-rose-600 text-white p-9 rounded-[2.5rem] hover:bg-rose-500 shadow-2xl shadow-rose-600/30 transition-all hover:scale-110 active:scale-90"
                 >
-                  <PhoneOff className="w-9 h-9" />
+                  <PhoneOff className="w-10 h-10" />
                 </button>
               </>
             ) : (
               <button
                 onClick={startSession}
                 disabled={status === 'connecting'}
-                className="bg-indigo-600 text-white px-20 py-6 rounded-[2.5rem] font-bold text-xl hover:bg-indigo-500 shadow-2xl transition-all flex items-center gap-4 disabled:opacity-50"
+                className="bg-indigo-600 text-white px-24 py-7 rounded-[2.5rem] font-black text-xl hover:bg-indigo-500 shadow-2xl shadow-indigo-600/40 transition-all hover:scale-105 active:scale-95 flex items-center gap-5 disabled:opacity-50 uppercase tracking-widest"
               >
                 {status === 'connecting' ? (
-                  <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : <Volume2 className="w-7 h-7" />}
-                <span>{status === 'connecting' ? 'Calibrating...' : `Enter Session`}</span>
+                  <div className="w-7 h-7 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : <Volume2 className="w-8 h-8" />}
+                <span>{status === 'connecting' ? 'Establishing Resonance...' : `Deep Voice Presence`}</span>
               </button>
             )}
           </div>
         </div>
       </div>
 
-      <div className="glass-panel rounded-[2.5rem] flex flex-col border-white/5 bg-zinc-950/40 overflow-hidden shadow-2xl">
-        <div className="p-8 border-b border-white/5 bg-white/5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <MessageCircle className="w-6 h-6 text-indigo-400" />
-            <h4 className="text-base font-serif text-zinc-200">The Living Transcript</h4>
+      {/* Live Transcript Log */}
+      <div className="glass-panel rounded-[3rem] flex flex-col border-white/5 bg-zinc-950/40 overflow-hidden shadow-2xl">
+        <div className="p-10 border-b border-white/5 bg-white/5 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <MessageCircle className="w-7 h-7 text-indigo-400" />
+            <h4 className="text-xl font-serif text-zinc-200">The Living Scroll</h4>
+          </div>
+          <div className="px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-full">
+            <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Safe & Encryption Active</span>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar scroll-smooth">
+        <div className="flex-1 overflow-y-auto p-10 space-y-10 custom-scrollbar scroll-smooth">
           {transcripts.length === 0 && (
-            <div className="h-full flex flex-col items-center justify-center text-center opacity-20 space-y-6">
-              <Mic className="w-10 h-10" />
-              <p className="text-lg font-serif italic text-zinc-400">Voices will appear here...</p>
+            <div className="h-full flex flex-col items-center justify-center text-center opacity-20 space-y-8">
+              <div className="w-24 h-24 rounded-[2.5rem] bg-zinc-900 border border-white/5 flex items-center justify-center">
+                <Mic className="w-12 h-12" />
+              </div>
+              <p className="text-xl font-serif italic text-zinc-400">Voices will materialize as you speak...</p>
             </div>
           )}
 
           {transcripts.map((t, i) => (
             <div key={i} className={`flex flex-col ${t.role === 'user' ? 'items-end' : 'items-start'} animate-in fade-in slide-in-from-bottom-4 duration-500`}>
-              <div className={`max-w-[85%] p-6 rounded-[1.5rem] font-serif leading-relaxed text-lg ${
+              <div className={`max-w-[85%] p-8 rounded-[2rem] font-serif leading-relaxed text-xl shadow-2xl ${
                 t.role === 'user' 
                   ? 'bg-indigo-500/10 border border-indigo-500/20 text-indigo-50 italic' 
-                  : 'bg-zinc-800/60 border border-white/5 text-zinc-100'
+                  : 'bg-zinc-800/80 border border-white/5 text-zinc-100'
               }`}>
                 {t.text}
-                {t.isPartial && <span className="inline-block w-1.5 h-5 ml-1.5 bg-indigo-400 animate-pulse rounded-full" />}
+                {t.isPartial && <span className="inline-block w-2 h-6 ml-2 bg-indigo-400 animate-pulse rounded-full align-middle" />}
               </div>
-              <span className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em] mt-3 px-2">
-                {t.role === 'user' ? 'YOU' : activePers.name.toUpperCase()}
-              </span>
+              <div className="mt-4 px-3 flex items-center gap-3">
+                <div className={`w-2 h-2 rounded-full ${t.role === 'user' ? 'bg-rose-500' : 'bg-indigo-500'}`} />
+                <span className="text-[11px] font-black text-zinc-600 uppercase tracking-[0.3em]">
+                  {t.role === 'user' ? 'YOUR HEART' : activePers.name.toUpperCase()}
+                </span>
+              </div>
             </div>
           ))}
           <div ref={transcriptEndRef} />
         </div>
+        
+        {isActive && (
+          <div className="p-8 bg-black/40 border-t border-white/5 backdrop-blur-3xl">
+            <div className="flex items-center justify-center gap-4">
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent to-indigo-500/20" />
+              <p className="text-[10px] text-indigo-400/50 uppercase tracking-[0.5em] font-black italic">
+                Neural Resonance Streaming
+              </p>
+              <div className="h-px flex-1 bg-gradient-to-l from-transparent to-indigo-500/20" />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
