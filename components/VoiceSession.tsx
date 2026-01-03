@@ -1,8 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { GoogleGenAI, Modality } from '@google/genai';
 import { Mic, MicOff, PhoneOff, UserCheck, MessageCircle, Volume2, Activity } from 'lucide-react';
-import { decodeBase64, decodeAudioBuffer, encodePCM, GeminiService } from '../services/geminiService';
 import { PersonalityId, PERSONALITIES } from '../types';
 
 interface VoiceSessionProps {
@@ -105,120 +103,15 @@ const VoiceSession: React.FC<VoiceSessionProps> = ({ personalityId }) => {
       setStatus('connecting');
       setIsActive(true);
       
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+      // Mock voice session - AI integration removed
+      setTranscripts([
+        { role: 'assistant', text: 'Voice session feature requires AI integration. This is a placeholder.', isPartial: false }
+      ]);
       
-      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-      inputAudioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
+      setTimeout(() => {
+        setStatus('listening');
+      }, 1000);
       
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-
-      inputAnalyserRef.current = inputAudioContextRef.current.createAnalyser();
-      inputAnalyserRef.current.fftSize = 256;
-      const micSource = inputAudioContextRef.current.createMediaStreamSource(stream);
-      micSource.connect(inputAnalyserRef.current);
-
-      outputAnalyserRef.current = audioContextRef.current.createAnalyser();
-      outputAnalyserRef.current.fftSize = 256;
-      outputGainRef.current = audioContextRef.current.createGain();
-      outputGainRef.current.connect(outputAnalyserRef.current);
-      outputAnalyserRef.current.connect(audioContextRef.current.destination);
-
-      startVisualizer();
-
-      const sessionPromise = ai.live.connect({
-        model: 'gemini-2.5-flash-native-audio-preview-09-2025',
-        callbacks: {
-          onopen: () => {
-            setStatus('listening');
-            const source = inputAudioContextRef.current!.createMediaStreamSource(stream);
-            const scriptProcessor = inputAudioContextRef.current!.createScriptProcessor(4096, 1, 1);
-            
-            scriptProcessor.onaudioprocess = (e) => {
-              if (isMuted || !isActive) return;
-              const inputData = e.inputBuffer.getChannelData(0);
-              const l = inputData.length;
-              const int16 = new Int16Array(l);
-              for (let i = 0; i < l; i++) {
-                int16[i] = inputData[i] * 32768;
-              }
-              const pcmBlob = {
-                data: encodePCM(new Uint8Array(int16.buffer)),
-                mimeType: 'audio/pcm;rate=16000',
-              };
-              sessionPromise.then(session => {
-                if (session) session.sendRealtimeInput({ media: pcmBlob });
-              });
-            };
-            
-            source.connect(scriptProcessor);
-            scriptProcessor.connect(inputAudioContextRef.current!.destination);
-          },
-          onmessage: async (message) => {
-            const base64Audio = message.serverContent?.modelTurn?.parts[0]?.inlineData?.data;
-            if (base64Audio) {
-              setStatus('speaking');
-              const ctx = audioContextRef.current!;
-              nextStartTimeRef.current = Math.max(nextStartTimeRef.current, ctx.currentTime);
-              
-              const audioBuffer = await decodeAudioBuffer(decodeBase64(base64Audio), ctx, 24000, 1);
-              const source = ctx.createBufferSource();
-              source.buffer = audioBuffer;
-              source.connect(outputGainRef.current!);
-              
-              source.addEventListener('ended', () => {
-                sourcesRef.current.delete(source);
-                if (sourcesRef.current.size === 0) setStatus('listening');
-              });
-              
-              source.start(nextStartTimeRef.current);
-              nextStartTimeRef.current += audioBuffer.duration;
-              sourcesRef.current.add(source);
-            }
-
-            if (message.serverContent?.inputTranscription) {
-              currentUserText.current += message.serverContent.inputTranscription.text;
-              updateTranscript('user', currentUserText.current, true);
-            }
-            
-            if (message.serverContent?.outputTranscription) {
-              currentModelText.current += message.serverContent.outputTranscription.text;
-              updateTranscript('assistant', currentModelText.current, true);
-            }
-
-            if (message.serverContent?.turnComplete) {
-              updateTranscript('user', currentUserText.current, false);
-              updateTranscript('assistant', currentModelText.current, false);
-              currentUserText.current = '';
-              currentModelText.current = '';
-            }
-
-            if (message.serverContent?.interrupted) {
-              sourcesRef.current.forEach(s => { try { s.stop(); } catch (e) {} });
-              sourcesRef.current.clear();
-              nextStartTimeRef.current = 0;
-              updateTranscript('assistant', currentModelText.current + " [Interrupted]", false);
-              currentModelText.current = '';
-            }
-          },
-          onerror: () => stopSession(),
-          onclose: () => stopSession()
-        },
-        config: {
-          responseModalities: [Modality.AUDIO],
-          speechConfig: {
-            voiceConfig: { 
-              prebuiltVoiceConfig: { 
-                voiceName: GeminiService.getVoiceForPersonality(personalityId) 
-              } 
-            },
-          },
-          inputAudioTranscription: {},
-          outputAudioTranscription: {},
-          systemInstruction: `${activePers.instruction} This is a live voice session. Be warm, natural, and responsive. Speak with clinical grace and empathy.`,
-        }
-      });
-
-      sessionRef.current = await sessionPromise;
     } catch (err) {
       stopSession();
     }
