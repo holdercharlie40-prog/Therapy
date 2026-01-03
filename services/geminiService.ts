@@ -1,103 +1,48 @@
 
-import { GoogleGenAI, Type, Modality } from "@google/genai";
 import { PERSONALITIES, PersonalityId, TherapyMode } from "../types";
 
 export class GeminiService {
-  static async deepReflect(message: string, personalityId: PersonalityId = 'therapist', context: string = "") {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  static async deepReflect(message: string, personalityId: PersonalityId = 'therapist', _context: string = "") {
     const personality = PERSONALITIES[personalityId];
     
-    const response = await ai.models.generateContent({
-      model: "gemini-3-pro-preview",
-      contents: `Context: ${context}\n\nUser: ${message}`,
-      config: {
-        systemInstruction: `${personality.instruction} Utilize your thinking budget to analyze deep subconscious themes before responding. Always maintain your unique character persona.`,
-        thinkingConfig: { thinkingBudget: 32768 }
-      },
-    });
-    return response.text;
+    // Mock response - in production this would call an AI service
+    return `This is a placeholder response from ${personality.name}. The AI integration has been removed. Original message: ${message}`;
   }
 
   static async generateTherapyPath(userGoals: string, modalities: TherapyMode[]) {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    const modalityList = modalities.length > 0 ? modalities.join(', ') : "CBT, DBT, Trauma-Informed, EMDR, Psychodynamic, Humanistic, IPT, Family, Group, ABA";
-    
-    const response = await ai.models.generateContent({
-      model: "gemini-3-pro-preview",
-      contents: `User Goals: ${userGoals}\nRequested Modalities: ${modalityList}\n\nPlease generate a personalized therapy plan. For EACH STEP, provide a specific, actionable "Homework Assignment".`,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            name: { type: Type.STRING },
-            focus: { type: Type.STRING },
-            philosophy: { type: Type.STRING },
-            steps: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  modality: { type: Type.STRING },
-                  title: { type: Type.STRING },
-                  description: { type: Type.STRING },
-                  exercise: { type: Type.STRING }
-                },
-                required: ["modality", "title", "description", "exercise"]
-              }
-            }
-          },
-          required: ["name", "focus", "steps", "philosophy"]
-        },
-        systemInstruction: "You are a master clinical architect. Build a personalized multi-modal healing journey. Ensure behavioral techniques are included if ABA is requested."
-      }
-    });
-    return JSON.parse(response.text);
+    // Mock response
+    return {
+      name: "Your Personalized Healing Journey",
+      focus: userGoals,
+      philosophy: "A holistic approach combining evidence-based practices",
+      steps: [
+        {
+          modality: modalities[0] || "CBT",
+          title: "Initial Assessment",
+          description: "Understanding your current state and goals",
+          exercise: "Keep a daily mood journal"
+        }
+      ]
+    };
   }
 
   // Fix: Added missing method to generate meditation scripts requested by MeditationHub
   static async generateMeditationScript(focus: string, personalityId: PersonalityId) {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const personality = PERSONALITIES[personalityId];
-    const response = await ai.models.generateContent({
-      model: "gemini-3-pro-preview",
-      contents: `Focus: ${focus}\n\nPlease write a 5-minute guided meditation script. Use [pause] to indicate short pauses for reflection.`,
-      config: {
-        systemInstruction: `${personality.instruction} You are guiding a meditation session. Speak with clinical grace and deep empathy.`,
-      },
-    });
-    return response.text;
+    // Mock meditation script
+    return `Welcome to this meditation focused on ${focus}. [pause] Close your eyes and breathe deeply. [pause] ${personality.name} is guiding you on this journey. [pause] Continue to breathe and relax.`;
   }
 
   // Fix: Added missing method to generate daily affirmations requested by MeditationHub
   static async generateAffirmations(personalityId: PersonalityId) {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const personality = PERSONALITIES[personalityId];
-    const response = await ai.models.generateContent({
-      model: "gemini-3-pro-preview",
-      contents: "Generate 5 daily affirmations that resonate with your unique persona and clinical approach.",
-      config: {
-        systemInstruction: `${personality.instruction} You are providing soul-deep affirmations. Maintain your unique persona.`,
-      },
-    });
-    return response.text;
+    // Mock affirmations
+    return `Affirmations from ${personality.name}:\n1. You are worthy of healing\n2. Your journey matters\n3. Progress, not perfection\n4. You are enough\n5. Growth happens in small steps`;
   }
 
-  static async speak(text: string, voiceName: string = 'Kore') {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash-preview-tts",
-      contents: [{ parts: [{ text: text.replace(/\[pause\]/g, " ... ") }] }],
-      config: {
-        responseModalities: [Modality.AUDIO],
-        speechConfig: {
-          voiceConfig: {
-            prebuiltVoiceConfig: { voiceName },
-          },
-        },
-      },
-    });
-    return response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+  static async speak(_text: string, _voiceName: string = 'Kore') {
+    // Mock audio data - return empty base64 audio
+    return undefined;
   }
 
   static getVoiceForPersonality(personalityId: PersonalityId): string {
@@ -116,44 +61,26 @@ export class GeminiService {
   }
 
   static async quickComfort(message: string, personalityId: PersonalityId = 'therapist') {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const personality = PERSONALITIES[personalityId];
-    const response = await ai.models.generateContent({
-      model: "gemini-flash-lite-latest",
-      contents: message,
-      config: {
-        systemInstruction: `${personality.instruction} Provide a very brief (1-2 sentence) comfort or grounding phrase.`,
-      }
-    });
-    return response.text;
+    // Mock comfort response
+    return `${personality.name} is here with you. Take a deep breath - you're doing great.`;
   }
 
   static async searchClinicalInfo(query: string) {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: query,
-      config: { tools: [{ googleSearch: {} }] },
-    });
-    const text = response.text;
-    const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks?.map(chunk => ({
-      title: chunk.web?.title || 'Clinical Source',
-      uri: chunk.web?.uri || '#'
-    })).filter(s => s.uri !== '#') || [];
+    // Mock clinical search
+    const text = `This is a placeholder for clinical information about: ${query}. AI service integration has been removed.`;
+    const sources = [
+      { title: 'Example Clinical Source', uri: 'https://example.com' }
+    ];
     return { text, sources };
   }
 
-  static async findLocalSupport(lat: number, lng: number) {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    const response = await ai.models.generateContent({
-      model: "gemini-flash-latest",
-      contents: "Find mental health support centers near me.",
-      config: {
-        tools: [{ googleMaps: {} }],
-        toolConfig: { retrievalConfig: { latLng: { latitude: lat, longitude: lng } } }
-      },
-    });
-    return { text: response.text, links: response.candidates?.[0]?.groundingMetadata?.groundingChunks || [] };
+  static async findLocalSupport(_lat: number, _lng: number) {
+    // Mock support finder
+    return { 
+      text: 'Mental health support services are available. Please consult local directories for current information.',
+      links: [] 
+    };
   }
 }
 
